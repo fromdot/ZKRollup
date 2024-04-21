@@ -1,0 +1,25 @@
+{
+  "name": "zk-rollup",
+  "version": "0.1.0",
+  "author": "fromdot",
+  "module": "js/rollup.js",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/circomlibjs": "^0.1.6",
+    "@types/node": "^20.11.30",
+    "@types/snarkjs": "^0.7.8",
+    "circom_tester": "^0.0.20",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "eslint": "^8.57.0",
+    "eslint-plugin-jsdoc": "^48.2.2",
+    "ethers": "^6.11.1",
+    "snarkjs": "^0.7.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3",
+    "winston": "^3.13.0"
+  },
+  "scripts": {
+    "test": "node js/rollup.test.js --test-timeout 3600000"
+  }
+}

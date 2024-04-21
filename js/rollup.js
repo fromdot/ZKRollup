@@ -25,15 +25,10 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'zk-rollup' }, // user-service
   transports: [
-    //
-    // - Write all logs with importance level of `error` or less to `error.log`
-    // - Write all logs with importance level of `info` or less to `combined.log`
-    //
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' }),
   ],
 });
-
 
 /**
  * buffer to hex
@@ -161,23 +156,14 @@ async function transferNFT(from, to, nftID, rollupdata, circuit) {
     rollupdata.eddsa
   )
 
-  // console.log(`\nfrom: ${JSON.stringify(from,null,2)}`);
-  // console.log(`\nto: ${JSON.stringify(to,null,2)}`);
-  // console.log(`\ntransferRequest.targetAddress: ${transferRequest.targetAddress}`);
-  
   // move the NFT  to the new  owner
   const nft_res = await rollupdata.trie.update(nftID, transferRequest.targetAddress);
   // increate nonce for the NFT
   const nonce_res = await rollupdata.nonceTrie.update(nftID, transferRequest.nonce + 1);
-  
-  // console.log(`\nnft_res: ${JSON.stringify(nft_res,null,2)}`);
-  // console.log(`\nnonce_res: ${JSON.stringify(nonce_res,null,2)}`);
-  
+
   // generate and check zkp
   let nft_siblings = convertSiblings(nft_res.siblings, rollupdata.trie);
   let nonce_sibligns = convertSiblings(nonce_res.siblings, rollupdata.nonceTrie)
-  // console.log(`\nrollupdata: ${(rollupdata,null,2)}`);
-  // console.log(rollupdata.trie.F.toObject);
 
   const inputs = {
     targetAddress: buf2hex(transferRequest.targetAddress),
@@ -271,7 +257,6 @@ async function batchTransferNFTs(transferRequestList, rollupdata) {
   }
 
   const hash = createHash("sha256").update(Buffer.concat(transactionBuffers)).digest("hex");
-  // const ffhash_nf = BigInt(`0x${hash}`); // unused
   const ffhash = BigInt(`0x${hash}`) % FIELD_SIZE;
   const transactionListHash = `0x${ffhash.toString(16)}`; // hex
 
@@ -382,10 +367,6 @@ async function generateBatchTransferZKP(_trie, _nonceTrie, transferRequestList, 
 
   const oldStateHash = rollupdata.poseidon([oldRoot, nonceOldRoot])
   const newStateHash = rollupdata.poseidon([newRoot, nonceNewRoot])
-  
-  // console.log(transactionListHash);
-  // console.log(`${rollupdata.poseidon.F.toObject(oldStateHash)}`);
-  // console.log(`${rollupdata.poseidon.F.toObject(newStateHash)}`);
 
   const inputs = {
     oldRoot,

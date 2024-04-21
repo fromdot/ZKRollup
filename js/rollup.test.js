@@ -43,10 +43,6 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'user-service' },
   transports: [
-    //
-    // - Write all logs with importance level of `error` or less to `error.log`
-    // - Write all logs with importance level of `info` or less to `combined.log`
-    //
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' }),
   ],
@@ -87,8 +83,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
     const w = await circuit.calculateWitness(inputs, true);
     // eslint-disable-next-line no-unused-vars
     const check = await circuit.checkConstraints(w);
-    // console.log(`\nw: ${w}`);
-    // console.log(`\ncheck: ${check}`);
 
     const {proof, publicSignals} = await snarkjs.groth16.fullProve(
       inputs,
@@ -97,9 +91,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
       // eslint-disable-next-line no-undef
       path.join(__dirname, "../circuits/build", "verify_transfer_request.zkey")
     );
-
-    // console.log(`\nproof: ${JSON.stringify(proof,null,2)}`);
-    // console.log(`\npublicSignals: ${JSON.stringify(publicSignals,null,2)}`);
 
     const vkey = JSON.parse(
       fs.readFileSync(
@@ -110,8 +101,7 @@ describe("# ZK-Rollup for transfering NFT ", () => {
           "verify_transfer_request_vkey.json"
           ),"utf8"));
     const verify_transfer_request_res = await snarkjs.groth16.verify(vkey, publicSignals, proof); // at least one needs to be public
-    // assert(verify_transfer_request_res);
-    console.log(`\nverify_transfer_request_res: ${verify_transfer_request_res}`);
+    assert(verify_transfer_request_res);
   })
 
   test("##2 Transfer `NFT 1` from `account 0` to `1`, `1` to `2`", async () => {
@@ -119,22 +109,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
     await transferNFT(rollupdata.accounts[0], rollupdata.accounts[1], 1, rollupdata, circuit);
     await transferNFT(rollupdata.accounts[1], rollupdata.accounts[2], 1, rollupdata, circuit);
   })
-  
-  // TODO: Why does this test not worked properly with below test 3-2?
-  // test("##3-1 Test the rollup!", async () => {
-  //   const req1 =  createTransferRequest(rollupdata.accounts[0], rollupdata.accounts[1], 2, 0, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req2 =  createTransferRequest(rollupdata.accounts[1], rollupdata.accounts[2], 2, 1, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req3 =  createTransferRequest(rollupdata.accounts[2], rollupdata.accounts[1], 2, 2, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req4 =  createTransferRequest(rollupdata.accounts[1], rollupdata.accounts[0], 2, 3, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req5 =  createTransferRequest(rollupdata.accounts[0], rollupdata.accounts[1], 2, 4, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req6 =  createTransferRequest(rollupdata.accounts[1], rollupdata.accounts[2], 2, 5, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req7 =  createTransferRequest(rollupdata.accounts[2], rollupdata.accounts[1], 2, 6, rollupdata.poseidon,rollupdata.eddsa)
-  //   const req8 =  createTransferRequest(rollupdata.accounts[1], rollupdata.accounts[0], 2, 7, rollupdata.poseidon,rollupdata.eddsa)
-
-  //   await batchTransferNFTs([
-  //     req1,req2,req3,req4,req5,req6,req7,req8
-  //   ], rollupdata)
-  // })
 
   const BATCH_SIZE = 8;
 
@@ -168,9 +142,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
     const RollupContract = await RollupContractFactory.deploy(oldStateHash, await rollupdata.contract.getAddress());
     rollup_contract_address = await RollupContract.getAddress();
 
-    console.log(rollup_contract_address);
-    console.log(RollupContract.address);
-
     const test = await generateBatchTransferZKP(_trie, _nonceTrie, transferReqs, rollupdata)
     
     const {proof,publicSignals} = test;
@@ -186,11 +157,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
       tList.push(tReq.targetAddress)
     }
 
-    // console.log(`\npublicSignals[0]: ${publicSignals[0]}`);
-    // console.log(`\npublicSignals[0]: ${publicSignals[1]}`);
-    // console.log(`\npublicSignals[0]: ${publicSignals[2]}`);
-    // console.log(`\npublicSignals[0]: ${publicSignals[3]}`);
-
     await RollupContract.updateState(
       [proof.pi_a[0],proof.pi_a[1]],
       [[proof.pi_b[0][1], proof.pi_b[0][0]], [proof.pi_b[1][1], proof.pi_b[1][0]]], // why?
@@ -202,8 +168,7 @@ describe("# ZK-Rollup for transfering NFT ", () => {
     console.log("--------Hash values are equal?---------");
     console.log(await RollupContract.getStateHash());
     console.log(newStateHash);
-    
-    // assert.equal(await RollupContract.getStateHash(), newStateHash)
+    assert.equal(await RollupContract.getStateHash(), newStateHash)
   })
   
   test("##4 Calculate simple NFT transfer gas cost", async () => {
@@ -217,9 +182,6 @@ describe("# ZK-Rollup for transfering NFT ", () => {
       account0 
     );
     const TokenContract = await TokenContractFactory.deploy(account0);
-    console.log(`\nTokenContract.interface.fragments: ${JSON.stringify(TokenContract.interface.fragments,null,2)}`);
-
-    console.log(account0);
 
     for(let i=1; i<=BATCH_SIZE; i++){
       await TokenContract.safeMint(account0.address, i)
